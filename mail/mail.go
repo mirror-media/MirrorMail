@@ -12,10 +12,12 @@ import (
 
 const cred string = "configs/gmail_cred.json"
 
+//Mailer is a general interface handles different kind of mail template structs
 type Mailer interface {
 	ConvertToGmail() (gmail.Message, error)
 }
 
+//Data is the struct for handling http post request
 type Data struct {
 	templateName string
 	MailContent  map[string]interface{}
@@ -77,6 +79,7 @@ func SendMail(c *gin.Context) {
 		return
 	}
 
+	//Send email here
 	_, err = GmailService.Users.Messages.Send("me", &message).Do()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"err": err.Error()})
