@@ -44,7 +44,7 @@ func (m MagazineSubscribeConfirm) parseTemplate() (string, error) {
 	}
 	mJson = f.(map[string]interface{})
 
-	tt, err := template.ParseFiles("templates/email.tmpl") // Which template to use
+	tt, err := template.ParseFiles("templates/magazine_email.tmpl") // Which template to use
 	if err != nil {
 		return "", err
 	}

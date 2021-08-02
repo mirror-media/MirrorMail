@@ -67,6 +67,7 @@ func SendMail(c *gin.Context) {
 	message, err := m.ConvertToGmail()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"err": err.Error()})
+		return
 	}
 
 	GmailService, err := InitGmailClient()
