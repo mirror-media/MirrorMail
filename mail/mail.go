@@ -19,12 +19,12 @@ type Mailer interface {
 
 //Data is the struct for handling http post request
 type Data struct {
-	templateName string
-	MailContent  map[string]interface{}
+	TemplateName string `json:"TemplateName"`
+	MailContent  string `json:"MailContent"`
 }
 
 type MemberSubscription struct {
-	MailContent map[string]interface{}
+	MailContent string
 }
 
 func (m MemberSubscription) ConvertToGmail() (gmail.Message, error) {
@@ -41,19 +41,24 @@ func SendMail(c *gin.Context) {
 	}
 	var mailData Data
 	err = json.Unmarshal(b, &mailData)
+
+	// fmt.Printf("%+v\n", mailData)
+
 	if err != nil {
 		c.JSON(500, err.Error())
 		return
 	}
 
 	var m Mailer
-	switch mailData.templateName {
+	switch mailData.TemplateName {
 	case "magazineSubscribe":
 		m = MagazineSubscribeConfirm{mailData.MailContent}
 	case "memberSubscribe":
 		m = MemberSubscription{mailData.MailContent}
 	case "paymentError":
 		m = PaymentError{mailData.MailContent}
+	case "hello":
+		m = Hello{mailData.MailContent}
 	default:
 		c.JSON(500, gin.H{"err": errors.New("not having template required")})
 		return

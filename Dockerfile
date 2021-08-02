@@ -8,3 +8,5 @@ VOLUME /var/log
 EXPOSE 8080
 
 CMD ["./MirrorMail"]
+
+#docker build . -t gcr.io/mirrormedia-1470651750304/mirror-mail:master_andyfcx_1_mirror-mail && docker push gcr.io/mirrormedia-1470651750304/mirror-mail:master_andyfcx_1_mirror-mail
