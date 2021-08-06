@@ -26,6 +26,7 @@ func (m MagazineSubscribeConfirm) ConvertToGmail() (gmail.Message, error) {
 
 	emailTo := fmt.Sprintf("To: %s \r\n", mJson["BuyerEmail"])
 
+	// TODO: please survey how to convert subject to Chinese, perhaps double encoding
 	subject := fmt.Sprintf("Subject: Your Subscription in MirrorMedia: %s \n",
 		mJson["MerchantOrderNo"])
 
