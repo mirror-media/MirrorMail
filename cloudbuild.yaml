@@ -1,0 +1,71 @@
+steps:
+  - name: gcr.io/cloud-builders/gcloud
+    args:
+      - source
+      - repos
+      - clone
+      - github_mirror-media_kubernetes-configs
+      - ./dockerignore/kubernetes-configs
+  - name: bash
+    args:
+      - cp
+      - ./dockerignore/kubernetes-configs/mirror-media-mail/base/configs/
+      - ./configs/
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - '-t'
+      - 'gcr.io/${PROJECT_ID}/mirror-media-mail:${BRANCH_NAME}_${SHORT_SHA}'
+      - .
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - gcr.io/$PROJECT_ID/mirror-media-mail
+
+  # NOTICE: THE FOLLOWING STEPS ARE FOR TEMPRARY USAGE
+  # build `kustomize` configs
+  - name: 'launcher.gcr.io/google/ubuntu1604'
+    entrypoint: bash
+    args:
+      - '-c'
+      - |
+        # install kustomize
+        curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+
+        # mv kubernetes-configs folder
+        mv ./dockerignore/kubernetes-configs /workspace/kubernetes-configs
+
+        # cd to (dev|staging) environment kustimzation root
+        cd /workspace/kubernetes-configs/mirror-media-mail/overlays/${BRANCH_NAME}
+
+        # update docker image
+        /workspace/kustomize edit set image mirror-media-mail=gcr.io/${PROJECT_ID}/mirror-media-mail:${BRANCH_NAME}_${SHORT_SHA}
+
+        # back to kubernetes-configs root
+        cd /workspace/kubernetes-configs
+
+        /workspace/kustomize build "./mirror-media-mail/overlays/${BRANCH_NAME}/" >> $_FILE_TO_DEPLOY
+        echo "---" >> $_FILE_TO_DEPLOY
+
+        # print out configs
+        cat $_FILE_TO_DEPLOY
+
+  # deploy to kubernetes cluster by config file
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args:
+      - apply
+      - -f
+      - $_FILE_TO_DEPLOY
+      - --validate=true
+    env:
+      - 'CLOUDSDK_COMPUTE_REGION=asia-east1'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=tv-cluster'
+
+timeout: 1200s
+
+substitutions:
+  _FILE_TO_DEPLOY: /workspace/config-to-deploy.txt # default value
+
+images:
+  - gcr.io/$PROJECT_ID/mirror-media-mail
+
